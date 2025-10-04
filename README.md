@@ -23,7 +23,7 @@ Every major language runtime (JavaScript, Python, Rust itself) has **parsing and
 * **Learn compiler construction by doing.**
 * **Build reusable components** for bigger future projects like DSLs, interpreters, or even compilers.
 
-This project is not just an academic exercise — it’s an **engineering playground** that demonstrates mastery over low-level details that drive language design.
+This project is not just an academic exercise, it’s an **engineering playground** that demonstrates mastery over low-level details that drive language design.
 
 ---
 
@@ -143,7 +143,10 @@ flowchart TD
 
 ---
 ## Example Output
-image 
+ ![Output Image](media/final-parser-image.png)
+
+ ![Output Image](media/parser-test-final.png)
+
 gif
 ---
 ## 🧠 Challenges & Solutions
