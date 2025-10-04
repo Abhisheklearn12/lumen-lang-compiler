@@ -229,7 +229,7 @@ Supports: numbers, + - * / % ^, parentheses, let, assignments, builtins (sin, co
 > sqrt(x) + cos(0)
 8
 
-> quit # for quit the the REPL
+> quit # for quit the REPL
 ```
 
 ---
