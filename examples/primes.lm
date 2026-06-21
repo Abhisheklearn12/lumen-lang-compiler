@@ -1,0 +1,26 @@
+// Prints every prime below 30 using trial division. Demonstrates helper
+// functions returning `bool`, nested loops, and early `return`.
+
+fn is_prime(n: i64) -> bool {
+    if n < 2 {
+        return false;
+    }
+    let mut d = 2;
+    while d * d <= n {
+        if n % d == 0 {
+            return false;
+        }
+        d = d + 1;
+    }
+    true
+}
+
+fn main() {
+    let mut n = 2;
+    while n < 30 {
+        if is_prime(n) {
+            print_int(n);
+        }
+        n = n + 1;
+    }
+}

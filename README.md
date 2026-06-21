@@ -1,271 +1,171 @@
+# Lumen
 
-# Parser-Rust
+A small, statically-typed programming language and its compiler, written in
+idiomatic Rust. Lumen takes a program through a full, explicit compiler pipeline
+(lexing, parsing, name resolution, type checking, a typed intermediate
+representation, optimization, and code generation) and runs the result on a
+stack-based bytecode virtual machine.
 
-### A From-Scratch Pratt Parser and Expression Evaluator in Rust
+It is built as a study in professional compiler engineering: correct,
+observable, thoroughly tested, and small enough to read end to end.
 
-This project is a deep dive into building a parser, interpreter, and REPL system entirely from scratch in Rust.
-It does not rely on parser generators like ANTLR, LALRPOP, or pest. Instead, it demonstrates how parsing, abstract syntax trees, and evaluation are constructed at a fundamental level.
+```lumen
+fn fib(n: i64) -> i64 {
+    if n < 2 { n } else { fib(n - 1) + fib(n - 2) }
+}
 
-The goal was to:
-
-* **Understand parsing theory at the implementation level.**
-* **Tackle real-world Rust challenges** (borrowing, lifetimes, ownership).
-* **Design for correctness and extensibility.**
-* **Create a working REPL and test suite** that models the foundation of a simple language.
-
----
-
-## 🌍 Vision
-
-Every major language runtime (JavaScript, Python, Rust itself) has **parsing and evaluation layers** at its core. By implementing a miniature version, we:
-
-* **Demystify language internals.**
-* **Learn compiler construction by doing.**
-* **Build reusable components** for bigger future projects like DSLs, interpreters, or even compilers.
-
-This project is not just an academic exercise, it’s an **engineering playground** that demonstrates mastery over low-level details that drive language design.
-
----
-
-## 🔎 Features Overview
-
-✔️ **Lexical Analysis (Lexer)**
-
-* Converts raw source text into a stream of tokens (numbers, identifiers, operators, parentheses).
-* Span tracking (line, column) for precise error reporting.
-
-✔️ **Pratt Parser (Recursive Parsing)**
-
-* Handles precedence and associativity of operators.
-* Supports right-associative exponentiation (`^`).
-* Builds an **AST (Abstract Syntax Tree)** for further evaluation.
-
-✔️ **Evaluation Engine**
-
-* Walks the AST and computes results.
-* Supports:
-
-  * Arithmetic (`+`, `-`, `*`, `/`, `%`, `^`)
-  * Variables (`let x = 10`)
-  * Assignments (`x = x + 5`)
-  * Built-ins (`sin`, `cos`, `sqrt`, `pow`)
-
-✔️ **Error Handling**
-
-* Structured `EvalError` with spans.
-* Handles:
-
-  * Division by zero
-  * Unknown identifiers
-  * Wrong function arity
-  * Syntax errors
-
-✔️ **Interactive REPL**
-
-* Fully functional REPL for experimentation.
-* Gracefully handles quitting (`quit`) and blank lines.
-
-✔️ **Testing Suite**
-
-* Unit tests for:
-
-  * Operator precedence
-  * Associativity rules
-  * Variable handling
-  * Error cases
-
----
-
-## 🏗️ System Architecture
-
-Here’s the **big-picture architecture** of the parser:
-
-```mermaid
-flowchart TD
-    A[Raw Input String] --> B[Lexer]
-    B -->|Stream of Tokens| C[Pratt Parser]
-    C -->|AST| D[Evaluator]
-    D -->|Result<f64>| E[REPL / Output]
-
-    subgraph Errors
-    Cx[Syntax Errors]
-    Dx[Runtime Errors]
-    end
-
-    C --> Cx
-    D --> Dx
+fn main() {
+    for i in 0..11 {
+        print_int(fib(i));
+    }
+}
 ```
 
-### Components
-
-#### 1. **Lexer**
-
-* Splits input into tokens.
-* Produces spans for each token.
-* Example:
-  Input: `2 + 3 * 4`
-  Tokens: `[Number(2), Plus, Number(3), Star, Number(4)]`
-
-#### 2. **Pratt Parser**
-
-* Pratt parsing = precedence climbing with binding power.
-* Rules:
-
-  * Higher binding power binds tighter.
-  * Right-associativity (like `^`) requires careful recursive design.
-* Example:
-  Input: `2 ^ 3 ^ 2`
-  AST: `Pow(2, Pow(3, 2))`
-
-#### 3. **Evaluator**
-
-* Walks the AST.
-* Maintains environment for variables.
-* Evaluates recursively.
-* Example:
-  AST: `Assign(x, Mul(10, 2))`
-  Result: `x = 20`
-
-#### 4. **Error System**
-
-* Errors carry **span info** to point to exact source location.
-* Types:
-
-  * `SyntaxError("expected R_CURLY", Span)`
-  * `EvalError::DivByZero(Span)`
-  * `EvalError::NameError(name, Span)`
-
-#### 5. **REPL**
-
-* Simple interactive loop.
-* Input → Parse → Evaluate → Print.
-* Supports quitting with `quit`.
-
----
-## Example Output
- ![Output Image](media/final-parser-image.png)
-
- ![Output Image](media/parser-test-final.png)
-
-gif
----
-## 🧠 Challenges & Solutions
-
-| **Challenge**                    | **What Went Wrong**                                     | **Solution**                                                                |
-| -------------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------- |
-| **Exponentiation associativity** | Parsed left-to-right instead of right-to-left.          | Adjusted Pratt parser binding power to `prec - 1`.                          |
-| **Borrow checker conflicts**     | Immutable + mutable borrow of `self.env` in evaluation. | Separated `env.get()` (lookup) from mutation, restructured evaluation loop. |
-| **Span tracking complexity**     | Some spans unused → warnings.                           | Prefixed unused spans with `_span` when necessary.                          |
-| **Division by zero**             | Panicked during eval.                                   | Introduced explicit `EvalError::DivByZero`.                                 |
-| **REPL ergonomics**              | Needed graceful exit.                                   | Added `quit` and blank-line handling.                                       |
-| **Testing correctness**          | Subtle associativity bugs failing tests.                | Strengthened precedence test suite (`2 ^ 3 ^ 2 == 512`).                    |
-
----
-
-## 📚 Lessons Learned
-
-1. **Parsing Theory Made Practical**
-
-   * Pratt parsing is elegant for operator precedence grammars.
-   * Left vs. right associativity is subtle but critical.
-
-2. **Rust Ownership & Borrowing**
-
-   * Designing around Rust’s strict borrowing rules made the evaluator safer.
-   * Learned to restructure state management instead of fighting the compiler.
-
-3. **Span-Driven Error Reporting**
-
-   * Attaching spans to AST nodes makes for professional, compiler-grade error messages.
-
-4. **Test-Driven Development**
-
-   * Tests for associativity and precedence caught real-world bugs.
-   * Prevented regressions during refactors.
-
----
-
-## 📈 Roadmap
-
-* [x] Lexer + Parser
-* [x] Pratt parser with precedence/associativity
-* [x] AST construction
-* [x] Evaluator with environment
-* [x] Built-in functions
-* [x] Span-based error reporting
-* [x] REPL
-* [x] Unit tests for arithmetic, vars, errors
-* [ ] User-defined functions
-* [ ] Conditionals + Boolean logic
-* [ ] Strings and concatenation
-* [ ] Pattern-matching error reporting
-* [ ] Performance optimizations (arena-allocated AST, memoization)
-* [ ] Bytecode compiler backend
-
----
-
-## 🧪 Example Session
-
-```bash
-$ cargo run --release
-```
-
-```
-Extended expression language REPL. Type 'quit' or empty line to exit.
-Supports: numbers, + - * / % ^, parentheses, let, assignments, builtins (sin, cos, sqrt, pow, ...)
-
-> 2 + 3 * 4
-14
-
-> 2 ^ 3 ^ 2
-512
-
-> let x = 10
-10
-
-> x = x * 5
-50
-
-> sqrt(x) + cos(0)
+```console
+$ lumenc run examples/fib.lm
+0
+1
+1
+2
+3
+5
 8
-
-> quit # for quit the REPL
+13
+21
+34
+55
 ```
 
----
+## Architecture
 
-## Testing
-
-```bash
-cargo test
-```
+The compiler is an explicit sequence of phases, each with a narrow public API,
+its own diagnostics, and its own data type. No phase mutates another's output.
 
 ```
-running 5 tests
-test tests::test_variables ... ok
-test tests::test_div_by_zero ... ok
-test tests::test_unary_and_calls ... ok
-test tests::test_basic_arithmetic ... ok
-test tests::test_precedence_pow_right_assoc ... ok
-
-test result: ok. 5 passed; 0 failed
+source -> lexer -> parser -> AST
+                              |  name resolution   (Resolution)
+                              v  type checking      (Typeck)
+                             HIR  (typed, desugared)
+                              |  optimizer (inline + fold + DCE)
+                              v
+                          bytecode -> VM -> output
 ```
 
----
+| Phase            | Module             | Output                          |
+|------------------|--------------------|---------------------------------|
+| Lexer            | `lexer`            | `Vec<Token>`                    |
+| Parser           | `parser`           | `Ast` (Pratt-based)             |
+| Name resolution  | `sema::resolve`    | `Resolution` side tables        |
+| Type checking    | `sema::typeck`     | `Typeck` side tables            |
+| Lowering         | `hir`              | typed, desugared `Hir`          |
+| Optimizer        | `opt`              | inlined, folded `Hir`           |
+| Code generation  | `backend::codegen` | `Program` bytecode              |
+| VM               | `backend::vm`      | program output / value          |
 
-## Why This Project Matters
+Beyond the core path, the same typed HIR feeds two more backends used for
+analysis and validation: a CFG-based mid-level IR (`mir`) with its own data-flow
+optimizer and interpreter, and a C transpiler (`backend::c`) for the scalar
+subset. A bytecode verifier (`backend::verify`) checks any program (including one
+loaded from an object file) before it runs.
 
-This project demonstrates the ability to:
+The full design rationale is in [`docs/DESIGN.md`](docs/DESIGN.md); the language
+reference is in [`docs/LANGUAGE.md`](docs/LANGUAGE.md).
 
-* **Design clean system architecture.**
-* **Solve deep technical problems** (borrow checker, precedence bugs).
-* **Communicate complex systems** via diagrams and documentation.
-* **Build production-grade tooling** (tests, error spans, REPL).
+## Features
 
-This is more than a parser ---> it’s a **microcosm of compiler engineering**.
+- **First-class diagnostics**: error codes (`E0001`..`E0318`), multi-span
+  labels, notes and help, rendered with `miette`. Every phase is
+  error-tolerant and reports as many problems as it can in one run. `lumenc
+  explain <CODE>` prints a worked explanation of any code.
+- **A real type system**: `i64`, `f64`, `bool`, `str`, `unit`, arrays, structs,
+  and tuples; inference for `let`; no implicit conversions; divergence analysis
+  for returns.
+- **Expression-oriented control flow**: `if`/`else`, `while`, counted `for`,
+  `for`-each over arrays, `match` on scalar patterns, and `break`/`continue`.
+- **An optimizer**: function inlining, constant folding, algebraic
+  simplification, and dead-code elimination over HIR, run to a fixpoint, each
+  transformation guarded for soundness.
+- **A mid-level IR**: a CFG of basic blocks with classic data-flow passes
+  (constant folding, copy propagation, common-subexpression elimination,
+  dead-store and dead-code elimination, CFG simplification) and an interpreter
+  that is validated to agree with the stack VM.
+- **A bytecode VM**: stack-based, with call frames, recursion, and runtime error
+  handling; never panics on bad input. A verifier proves stack balance, in-range
+  operands, and call arity before execution.
+- **Ahead-of-time artifacts**: `lumenc build` writes a textual bytecode object
+  file that `lumenc exec` verifies and runs without recompiling from source.
+- **A standard library of builtins**: integer and float math, numeric
+  conversions, and string operations (see the language reference).
+- **Structured observability**: `#[tracing::instrument]` on every phase, plus
+  `lumenc --time` for per-phase timings.
+- **Tested throughout**: unit, snapshot, property (`proptest`), integration, and
+  regression tests, plus `criterion` benchmarks.
 
----
-QUOTE:
+## Using the compiler
+
+```console
+$ cargo build --release
+
+$ lumenc run    examples/primes.lm     # compile and execute
+$ lumenc check  examples/primes.lm     # type-check only
+$ lumenc fmt    examples/primes.lm     # print canonically-formatted source
+$ lumenc build  examples/fib.lm -o fib.lbc   # compile to a bytecode object
+$ lumenc exec   fib.lbc                # verify and run a built object
+$ lumenc explain E0318                 # explain a diagnostic code
+
+$ lumenc dump   ast      examples/fib.lm
+$ lumenc dump   hir-opt  examples/fib.lm
+$ lumenc dump   mir      examples/fib.lm
+$ lumenc dump   bytecode examples/fib.lm
+$ lumenc run    examples/fib.lm --time # per-phase timings on stderr
+
+$ RUST_LOG=lumen=debug lumenc run examples/fib.lm   # structured logs
 ```
- I strongly believe in "Fuck around and Find out"
+
+Dump forms: `tokens`, `ast`, `hir`, `hir-opt`, `mir`, `cfg`, `c`, `bytecode`,
+`verify`. Optimization is on by default; pass `-O0` to disable it.
+
+## Examples
+
+The [`examples/`](examples) directory holds runnable programs (`fib`,
+`factorial`, `fizzbuzz`, and `primes`), each verified by the test suite.
+
+## Development
+
+```console
+$ cargo test                                   # unit + integration + regression
+$ cargo bench                                  # criterion benchmarks
+$ cargo clippy --all-targets --all-features -- -D warnings
+$ cargo fmt --check
 ```
+
+The project pins a Rust toolchain via `rust-toolchain.toml` (Rust 1.96, edition
+2024) so builds are reproducible.
+
+## Project layout
+
+```
+src/
+  span.rs, source.rs        spans and the line-indexed source map
+  errors.rs, diagnostics.rs error codes and the diagnostics subsystem
+  explain.rs, suggest.rs    error explanations and "did you mean" hints
+  lexer/                    tokens and the scanner
+  parser/                   AST, the parser, and an AST printer
+  sema/                     types, name resolution, type checking
+  hir/                      typed IR, lowering, and an HIR printer
+  opt/                      the pass manager: inlining, folding, DCE
+  mir/                      CFG-based mid-level IR, passes, interpreter
+  backend/                  bytecode, codegen, VM, disassembler, verifier,
+                            peephole optimizer, object format, C transpiler
+  format.rs                 the source formatter
+  session.rs                the pipeline driver
+  main.rs                   the `lumenc` CLI
+docs/                       design and language documentation
+examples/                   sample programs
+benches/                    criterion benchmarks
+tests/                      integration, regression, and example tests
+```
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
