@@ -41,15 +41,7 @@ $ lumenc run examples/fib.lm
 The compiler is an explicit sequence of phases, each with a narrow public API,
 its own diagnostics, and its own data type. No phase mutates another's output.
 
-```
-source -> lexer -> parser -> AST
-                              |  name resolution   (Resolution)
-                              v  type checking      (Typeck)
-                             HIR  (typed, desugared)
-                              |  optimizer (inline + fold + DCE)
-                              v
-                          bytecode -> VM -> output
-```
+![Lumen compiler pipeline: source → lexer → parser → AST → (name resolution, type checking) → HIR → optimizer → bytecode → VM → output](docs/assets/pipeline.png)
 
 | Phase            | Module             | Output                          |
 |------------------|--------------------|---------------------------------|
