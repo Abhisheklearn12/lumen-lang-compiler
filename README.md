@@ -95,9 +95,25 @@ reference is in [`docs/LANGUAGE.md`](docs/LANGUAGE.md).
 
 ## Using the compiler
 
+First build the compiler:
+
 ```console
 $ cargo build --release
+```
 
+This produces the `lumenc` binary at `target/release/lumenc`. The commands below
+write it simply as `lumenc`, which only works if that binary is on your `PATH`.
+Pick one of these:
+
+- **Run it by path** (no setup): replace `lumenc` with `./target/release/lumenc`,
+  e.g. `./target/release/lumenc run examples/primes.lm`.
+- **Run it via cargo** (no separate build step): put the arguments after `--`,
+  e.g. `cargo run --release -- run examples/primes.lm`.
+- **Install it** so plain `lumenc` works: `cargo install --path .` puts `lumenc`
+  in `~/.cargo/bin/` (on the default Rust `PATH`). Then the commands below work
+  verbatim. Check it with `which lumenc`.
+
+```console
 $ lumenc run    examples/primes.lm     # compile and execute
 $ lumenc check  examples/primes.lm     # type-check only
 $ lumenc fmt    examples/primes.lm     # print canonically-formatted source
