@@ -1,7 +1,41 @@
 [package]
-name = "parser-rust"
+name = "lumen"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.96"
+description = "Lumen  a small statically-typed language with a full compiler pipeline and bytecode VM."
+license = "MIT"
+repository = "https://github.com/Abhisheklearn12/parser-rust"
+readme = "README.md"
+keywords = ["compiler", "language", "interpreter", "bytecode", "vm"]
+categories = ["compilers"]
+
+[lib]
+name = "lumen"
+path = "src/lib.rs"
+
+[[bin]]
+name = "lumenc"
+path = "src/main.rs"
 
 [dependencies]
-# no dependencies is used, everything is raw.
+thiserror = "2"
+miette = { version = "7", features = ["fancy"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+[dev-dependencies]
+proptest = "1"
+insta = { version = "1", features = ["yaml"] }
+criterion = { version = "0.7", features = ["html_reports"] }
+
+[[bench]]
+name = "pipeline"
+harness = false
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+[profile.bench]
+lto = "thin"

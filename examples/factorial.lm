@@ -1,0 +1,25 @@
+// Factorial computed two ways  recursively and iteratively  to show that
+// functions, recursion, and `while` loops agree.
+
+fn fact_rec(n: i64) -> i64 {
+    if n <= 1 {
+        1
+    } else {
+        n * fact_rec(n - 1)
+    }
+}
+
+fn fact_iter(n: i64) -> i64 {
+    let mut acc = 1;
+    let mut i = 2;
+    while i <= n {
+        acc = acc * i;
+        i = i + 1;
+    }
+    acc
+}
+
+fn main() {
+    print_int(fact_rec(6));   // 720
+    print_int(fact_iter(6));  // 720
+}
