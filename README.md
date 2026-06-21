@@ -90,7 +90,7 @@ reference is in [`docs/LANGUAGE.md`](docs/LANGUAGE.md).
   conversions, and string operations (see the language reference).
 - **Structured observability**: `#[tracing::instrument]` on every phase, plus
   `lumenc --time` for per-phase timings.
-- **Tested throughout**: unit, snapshot, property (`proptest`), integration, and
+- **Tested throughout**: unit, property (`proptest`), integration, and
   regression tests, plus `criterion` benchmarks.
 
 ## Using the compiler
